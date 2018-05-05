@@ -1,0 +1,40 @@
+image: dingdayu/android-ci
+
+before_script:
+  - export GRADLE_USER_HOME=$(pwd)/.gradle
+  - chmod +x ./gradlew
+
+cache:
+  key: ${CI_PROJECT_ID}
+  paths:
+  - .gradle/
+
+stages:
+  - build
+  - test
+
+
+# 出现未知错误时，可使用 ./gradlew assembleDebug --stacktrace
+build:
+  stage: build
+  script:
+    - ./gradlew assembleDebug
+  artifacts:
+    paths:
+    - app/build/outputs/
+
+unitTests:
+  stage: test
+  script:
+    - ./gradlew test
+
+functionalTests:
+  stage: test
+  script:
+    - echo y | ${ANDROID_HOME}/tools/android --silent update sdk --no-ui --all --filter sys-img-x86-google_apis-${ANDROID_COMPILE_SDK}
+    - echo no | android-sdk-linux/tools/android create avd -n test -t android-${ANDROID_COMPILE_SDK} --abi google_apis/x86
+    - android-sdk-linux/tools/emulator64-x86 -avd test -no-window -no-audio &
+    - ./android-wait-for-emulator
+    - adb shell input keyevent 82
+    - ./gradlew cAT
+
