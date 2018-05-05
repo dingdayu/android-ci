@@ -1,86 +1,12 @@
-# Docker Image for Build Android
+apply plugin: 'com.android.application'
 
-安卓自动化继承Docker
+apply plugin: 'kotlin-android'
 
-## Edit gitlab-run/config.toml
+apply plugin: 'kotlin-android-extensions'
 
-Modify the configuration file: `/etc/gitlab-runner/config.toml` Add `pull_policy = "if-not-present"` under the corresponding runner node.
+android {
+    compileSdkVersion 26
 
-```
-[[runners]]
-  name = "Android Build Runner"
-  url = "https://git.xyser.com/"
-  token = "3dc54666cacafd************e"
-  executor = "docker"
-  [runners.docker]
-    tls_verify = false
-    image = "alpine:latest"
-    privileged = false
-    disable_cache = false
-    volumes = ["/cache"]
-    shm_size = 0
-    // 加入这行
-    pull_policy = "if-not-present"
-  [runners.cache]
-```
-
-## Example .gitlab-ci.yml file
-
-Please add your required sdk package with sdkmanager command, see example below.
-
-```yaml
-image: dingdayu/android-ci
-
-stages:
-  - test
-  - build
-
-before_script:
-  - export GRADLE_USER_HOME=`pwd`/.gradle
-  - chmod +x ./gradlew
-  - sdkmanager "platforms;android-22"         # Specify compileSdkVersion Depends on your android project
-  - sdkmanager "build-tools;25.0.3"           # Specify build tool to install, depends on your android project
-  - sdkmanager "extras;android;m2repository"  # You can add sdkmanager command to install another package here
-  - sdkmanager "extras;m2repository;com;android;support;constraint;constraint-layout;1.0.2" # If you need constraint-layout support
-
-cache:
-  key: ${CI_PROJECT_ID}
-  paths:
-  - .gradle/
-
-test:
-  stage: test
-  script:
-     - ./gradlew check
-
-build:
-  stage: build
-  script:
-  - ./gradlew assemble --stacktrace
-  artifacts:
-    paths:
-    - app/build/outputs/
-```
-
-## Add `app/version.properties`
-
-```file
-# The base build number used in CI build
-VERSION_CI_BASE_BUILD=100
-# The following lines are only used in manually build
-VERSION_MINOR=2
-VERSION_BUILD=99
-VERSION_PATCH=5
-VERSION_MAJOR=1
-```
-
-File at: [app/version.properties](app/version.properties)
-
-## Edit `app/build.gradle`
-
-Under `compileSdkVersion 26` add:
-
-```gradle
     def versionString, versionBuild  // 版本字符串和版本号
     def runTasks = gradle.startParameter.taskNames  // 获取gradle的启动任务列表
     if (':app:assembleRelease' in runTasks || 'assembleRelease' in runTasks) {  // 检查是否为Release构建
@@ -118,11 +44,6 @@ Under `compileSdkVersion 26` add:
         versionString = '0.0.0'
     }
 
-```
-
-update `defaultConfig`
-
-```gradle
     defaultConfig {
         applicationId "com.dingdayu.hello"
         minSdkVersion 15
@@ -133,6 +54,20 @@ update `defaultConfig`
         archivesBaseName = "app-${versionString}-${versionBuild}"  // 设置APK文件名
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
-```
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
 
-File at: [app/build.gradle](app/build.gradle)
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation"org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
+    implementation 'com.android.support:appcompat-v7:26.1.0'
+    implementation 'com.android.support:design:26.1.0'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+}
