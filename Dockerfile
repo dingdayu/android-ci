@@ -26,11 +26,11 @@ RUN mkdir -p /root/.android && \
   sdkmanager --update 
 
 # Install SDK Package
-RUN sdkmanager \
-    "platform-tools" \
-    "build-tools;27.0.3" \
-    "extras;android;m2repository" \
-    "extras;google;m2repository" \
-    "extras;google;google_play_services" \
-    "extras;m2repository;com;android;support;constraint;constraint-layout;1.0.2" \
-    "extras;m2repository;com;android;support;constraint;constraint-layout;1.0.1"
+# RUN sdkmanager --proxy=http --proxy_host=android-mirror.bugly.qq.com --proxy_port=8080 \
+#     "platform-tools" \
+#     "build-tools;27.0.3" \
+#     "extras;android;m2repository" \
+#     "extras;google;m2repository" \
+#     "extras;google;google_play_services" \
+#     "extras;m2repository;com;android;support;constraint;constraint-layout;1.0.2" \
+#     "extras;m2repository;com;android;support;constraint;constraint-layout;1.0.1"
