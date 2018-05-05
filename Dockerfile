@@ -3,35 +3,27 @@ FROM ubuntu
 MAINTAINER dingdayu <614422099@qq.com>
 
 ENV ANDROID_COMPILE_SDK 25
-ENV ANDROID_BUILD_TOOLS 24.0.0
-ENV ANDROID_SDK_TOOLS 24.4.1
+ENV VERSION_SDK_TOOLS 3859397
+ENV ANDROID_HOME "/sdk"
+ENV PATH "${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/tools/bin:${ANDROID_HOME}/platform-tools"
 
-RUN apt-get --quiet update --yes && \
-	apt-get --quiet install --yes --no-install-recommends \
-	wget tar unzip lib32stdc++6 lib32z1 lib32ncurses5 lib32gcc1 lib32stdc++6 libc6-i386 \
-	bzip2 curl git-core html2text openjdk-8-jdk \
+RUN apt-get -qq update && \
+	apt-get install -qqy --no-install-recommends \
+	curl unzip lib32stdc++6 lib32z1 lib32ncurses5 lib32gcc1 lib32stdc++6 libc6-i386 html2text openjdk-8-jdk \
 	&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-
 # download android-sdk
-RUN wget --quiet --output-document=android-sdk.tgz https://dl.google.com/android/android-sdk_r${ANDROID_SDK_TOOLS}-linux.tgz && \
-	tar --extract --gzip --file=android-sdk.tgz && rm -v android-sdk.tgz
+RUN curl -s -o sdk-tools.zip https://dl.google.com/android/repository/sdk-tools-linux-${VERSION_SDK_TOOLS}.zip && \
+	unzip /sdk-tools.zip -d /sdk && rm -v /sdk-tools.zip
 
-RUN echo y | android-sdk-linux/tools/android --silent update sdk --no-ui --all --filter android-${ANDROID_COMPILE_SDK} && \
-	echo y | android-sdk-linux/tools/android --silent update sdk --no-ui --all --filter platform-tools && \
-	echo y | android-sdk-linux/tools/android --silent update sdk --no-ui --all --filter build-tools-${ANDROID_BUILD_TOOLS} && \
-	echo y | android-sdk-linux/tools/android --silent update sdk --no-ui --all --filter extra-android-m2repository && \
-	echo y | android-sdk-linux/tools/android --silent update sdk --no-ui --all --filter extra-google-google_play_services && \
-    echo y | android-sdk-linux/tools/android --silent update sdk --no-ui --all --filter extra-google-m2repository
+RUN mkdir -p $ANDROID_HOME/licenses/ && \
+    echo "8933bad161af4178b1185d1a37fbf41ea5269c55\nd56f5187479451eabf01fb78af6dfcb131a6481e" > $ANDROID_HOME/licenses/android-sdk-license && \
+    echo "84831b9409646a918e30573bab4c9c91346d8abd" > $ANDROID_HOME/licenses/android-sdk-preview-license
 
-RUN wget --quiet --output-document=/usr/local/bin/android-wait-for-emulator https://raw.githubusercontent.com/travis-ci/travis-cookbooks/0f497eb71291b52a703143c5cd63a217c8766dc9/community-cookbooks/android-sdk/files/default/android-wait-for-emulator
-
-
-# 更新创建avd
-RUN echo y | android-sdk-linux/tools/android --silent update sdk --no-ui --all --filter sys-img-x86-google_apis-${ANDROID_COMPILE_SDK} && \
-	echo no | android-sdk-linux/tools/android create avd -n test -t android-${ANDROID_COMPILE_SDK} --abi google_apis/x86 && \
-
-# 设置环境变量
-RUN export ANDROID_HOME=$PWD/android-sdk-linux && \
-    export PATH=$PATH:$PWD/android-sdk-linux/platform-tools/ && \
-    chmod +x /usr/local/bin/android-wait-for-emulator
+# Install SDK Package
+RUN sdkmanager "platform-tools" --verbose && \
+    sdkmanager "extras;android;m2repository" --verbose && \
+    sdkmanager "extras;google;m2repository" --verbose && \
+    sdkmanager "extras;google;google_play_services" --verbose && \
+    sdkmanager "extras;m2repository;com;android;support;constraint;constraint-layout;1.0.2" --verbose && \
+    sdkmanager "extras;m2repository;com;android;support;constraint;constraint-layout;1.0.1" --verbose
