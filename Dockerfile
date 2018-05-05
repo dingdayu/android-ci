@@ -27,8 +27,8 @@ RUN mkdir -p /root/.android && \
 
 # Install SDK Package
 RUN sdkmanager "platform-tools" && \
-    "extras;android;m2repository" && \
-    "extras;google;m2repository" && \
-    "extras;google;google_play_services" && \
-    "extras;m2repository;com;android;support;constraint;constraint-layout;1.0.2" && \
-    "extras;m2repository;com;android;support;constraint;constraint-layout;1.0.1"
+    sdkmanager "extras;android;m2repository" && \
+    sdkmanager "extras;google;m2repository" && \
+    sdkmanager "extras;google;google_play_services" && \
+    sdkmanager "extras;m2repository;com;android;support;constraint;constraint-layout;1.0.2" && \
+    sdkmanager "extras;m2repository;com;android;support;constraint;constraint-layout;1.0.1"
