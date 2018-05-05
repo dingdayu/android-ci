@@ -56,7 +56,9 @@ test:
 build:
   stage: build
   script:
-  - ./gradlew assemble --stacktrace
+    - ./gradlew assemble --stacktrace
+  only:
+    tags
   artifacts:
     paths:
     - app/build/outputs/
