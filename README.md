@@ -1,5 +1,8 @@
 # Docker Image for Build Android
 
+[![Docker Automated buil](https://img.shields.io/docker/automated/dingdayu/android-ci.svg)](https://hub.docker.com/r/dingdayu/android-ci/)
+[![Docker Pulls](https://img.shields.io/docker/pulls/dingdayu/android-ci.svg)](https://hub.docker.com/r/dingdayu/android-ci/)
+
 安卓自动化继承Docker
 
 ## Edit gitlab-run/config.toml
